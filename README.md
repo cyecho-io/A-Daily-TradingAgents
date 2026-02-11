@@ -27,8 +27,7 @@
 *   ** 实时雷达 (Real-time Monitor)**: Web 可视化看板，实时监控自选股的量比、资金流向与盘口异常。
 *   ** 自动化研报 (Auto Report)**: 每日盘后自动生成精美的 HTML/Markdown 研报，复盘当日操作与明日计划。
 
-  ![Uploading 76DA048A-7D7E-4148-A513-322C363D7E1E.png…]()
-
+<img width="3344" height="1982" alt="cfa7cf1694be9004b9d6f835c257687f" src="https://github.com/user-attachments/assets/0884b10b-f8d5-4bd4-96a8-e2b5bbbae968" />
 
 ## 系统架构
 
