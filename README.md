@@ -86,8 +86,41 @@ python -m venv .venv
 source .venv/bin/activate  # macOS/Linux
 # .venv\Scripts\activate   # Windows
 
-# 启动一键向导
-python start.py
+# 安装依赖
+pip install -r requirements.txt
+```
+
+### 2. 配置说明
+
+1. 拷贝配置文件
+cp config.json.example config.json
+
+2. 配置大模型api和tushare的个人token
+```json
+{
+  "data_source": { 
+    "provider": "tushare",
+    "tushare_token": "your-tushare-token"
+  },
+  "database": {
+    "type": "mysql",
+    "host": "localhost",
+    "port": 3306,
+    "user": "root",
+    "password": "",
+    "db": "db_daily_strategy"
+  },
+  "api": {
+    "provider": "gemini-openai"
+  },
+  "api_gemini-openai": {
+    "provider": "gemini-openai",
+    "api_key": "your-api-key",
+    "base_url": "",
+    "model": "gemini-3-pro-high"
+  }
+  //...
+}
 ```
 
 `start.py` 脚本会自动完成以下所有工作：
