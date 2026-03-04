@@ -31,7 +31,15 @@
 
 ##  运行截图
 
+### 选股页面
+![9e530036ccab133369490d203480ea3d](https://github.com/user-attachments/assets/004ebe2d-2b22-4252-b817-db964d2d92b5)
+
+### 多Agent分析
 <img width="3344" height="1982" alt="cfa7cf1694be9004b9d6f835c257687f" src="https://github.com/user-attachments/assets/0884b10b-f8d5-4bd4-96a8-e2b5bbbae968" />
+
+### Agent助手Prompt模板配置
+<img width="3372" height="2476" alt="b19350e229b2e18d3af3a34d173bfd0b" src="https://github.com/user-attachments/assets/1d42a17c-51f7-4b29-accf-ce1a10e10a37" />
+
 
 ##  系统架构
 
