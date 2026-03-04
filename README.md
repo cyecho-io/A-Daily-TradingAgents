@@ -99,6 +99,8 @@ pip install -r requirements.txt
 
 # 确保已进入虚拟环境，一键启动
 python start.py
+
+# 启动后访问http://127.0.0.1:8100 打开web UI 界面
 ```
 
 ### 2. 配置说明
