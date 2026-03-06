@@ -82,13 +82,30 @@ git clone https://github.com/cyecho-io/A-Daily-TradingAgents.git
 cd A-Daily-TradingAgents
 ```
 
-### 2. 一键启动向导
+### 2. 一键启动向导 (含前端构建)
 
-为了避免与其他项目的依赖冲突，**强烈建议**在虚拟环境中运行。
+为了避免与其他项目的依赖冲突，**强烈建议**在虚拟环境中运行后端。同时，本项目采用了前后端分离架构，附带了使用 Vue 3 编写的前端页面。
 
-确保系统已安装 **Python 3.9+**，在项目根目录依次执行：
+确保系统已安装 **Python 3.9+** 以及 **Node.js**，在项目根目录依次执行：
 
 ```bash
+# ----- 1. 准备前端页面 (二选一) -----
+
+# 【选项 A】 编译构建（推荐给纯使用者）
+# 编译完成后，后端服务会自动加载并托管编译好的页面
+cd frontend
+npm install
+npm run build
+cd ..
+
+# 【选项 B】 开发模式（推荐给开发者）
+# 另外打开一个新终端，运行前端开发服务
+cd frontend
+npm install
+npm run dev
+
+# ----- 2. 启动后端服务 -----
+
 # 创建虚拟环境 (选做但推荐)
 python -m venv .venv
 source .venv/bin/activate  # macOS/Linux
@@ -100,10 +117,12 @@ pip install -r requirements.txt
 # 确保已进入虚拟环境，一键启动
 python start.py
 
-# 启动后访问http://127.0.0.1:8100 打开web UI 界面
+# 🎉 访问页面：
+# 如果使用了【选项 A】（前端已编译），启动后访问 http://127.0.0.1:8100 即可打开 Web UI 界面。
+# 如果使用了【选项 B】（前端开发模式），请访问 npm run dev 提示的地址（通常为 http://localhost:5173）。
 ```
 
-### 2. 配置说明
+### 3. 配置说明
 
 1. 拷贝配置文件
 cp config.json.example config.json
