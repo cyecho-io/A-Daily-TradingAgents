@@ -7,7 +7,7 @@ Orchestrates a debate between multiple AI agents with different personas to anal
 import asyncio
 import json
 import logging
-from typing import Dict, Any, List, AsyncGenerator
+from typing import Dict, Any, List, AsyncGenerator, Optional
 from datetime import datetime
 
 # 导入统一的分析入口
@@ -56,30 +56,37 @@ class StockAnalystAgent:
 
 
 class MultiAgentSystem:
-    def __init__(self, api_config: Dict[str, Any]):
+    def __init__(
+        self, api_config: Dict[str, Any], agents_slugs: Optional[List[str]] = None
+    ):
         self.api_config = api_config
         self.agents = []
-        self._load_agents()
+        self._load_agents(agents_slugs)
 
-    def _load_agents(self):
+    def _load_agents(self, agents_slugs: Optional[List[str]]):
         """从数据库加载 Agent 配置"""
         import database
 
-        # 三位辩论专家
-        agent_configs = [
-            {
-                "slug": "agent_trend_follower",
-                "fallback_name": "趋势跟随者 (Trend Follower)",
-            },
-            {
-                "slug": "agent_washout_hunter",
-                "fallback_name": "异动分析师 (Washout Hunter)",
-            },
-            {
-                "slug": "agent_fundamentals",
-                "fallback_name": "基本面分析师 (Fundamentals)",
-            },
-        ]
+        # 三位辩论专家默认配置
+        if agents_slugs:
+            agent_configs = [
+                {"slug": slug, "fallback_name": slug} for slug in agents_slugs
+            ]
+        else:
+            agent_configs = [
+                {
+                    "slug": "agent_trend_follower",
+                    "fallback_name": "趋势跟随者 (Trend Follower)",
+                },
+                {
+                    "slug": "agent_washout_hunter",
+                    "fallback_name": "异动分析师 (Washout Hunter)",
+                },
+                {
+                    "slug": "agent_fundamentals",
+                    "fallback_name": "基本面分析师 (Fundamentals)",
+                },
+            ]
 
         self.agents = []
 

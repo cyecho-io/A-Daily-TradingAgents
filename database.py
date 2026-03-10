@@ -11,17 +11,46 @@ import sqlite3
 import re
 import os
 import json
-def _fmt_dt(val, fmt):
-    if not val: return ""
-    if hasattr(val, "strftime"): return val.strftime(fmt)
-    s = str(val)
-    if fmt == "%Y-%m-%d": return s[:10]
-    if fmt == "%H:%M:%S": return s[11:19] if len(s)>11 else s
-    if fmt == "%Y-%m-%d %H:%M:%S": return s[:19]
-    return s
-
 from datetime import datetime
 from typing import List, Dict, Any, Optional
+
+try:
+    import yaml
+except ImportError:
+    pass
+
+AGENTS_YAML_FILE = "agents.yaml"
+
+
+def _load_agents_from_yaml() -> Dict[str, Any]:
+    if not os.path.exists(AGENTS_YAML_FILE):
+        return {}
+    try:
+        with open(AGENTS_YAML_FILE, "r", encoding="utf-8") as f:
+            if "yaml" in globals():
+                return yaml.safe_load(f) or {}
+            else:
+                print("⚠️ PyYAML not installed, skipping agents.yaml parsing")
+                return {}
+    except Exception as e:
+        print(f"❌ Error loading {AGENTS_YAML_FILE}: {e}")
+        return {}
+
+
+def _fmt_dt(val, fmt):
+    if not val:
+        return ""
+    if hasattr(val, "strftime"):
+        return val.strftime(fmt)
+    s = str(val)
+    if fmt == "%Y-%m-%d":
+        return s[:10]
+    if fmt == "%H:%M:%S":
+        return s[11:19] if len(s) > 11 else s
+    if fmt == "%Y-%m-%d %H:%M:%S":
+        return s[:19]
+    return s
+
 
 CONFIG_FILE = "config.json"
 
@@ -1130,7 +1159,9 @@ def get_daily_selections(selection_date: Optional[str] = None) -> List[Dict[str,
                             else 0,
                             "composite_score": row["composite_score"],
                             "ai_analysis": row["ai_analysis"],
-                            "selection_date": _fmt_dt(row["selection_date"], "%Y-%m-%d"),
+                            "selection_date": _fmt_dt(
+                                row["selection_date"], "%Y-%m-%d"
+                            ),
                             "created_at": _fmt_dt(row["created_at"], "%H:%M:%S")
                             if row.get("created_at")
                             else "",
@@ -1198,7 +1229,9 @@ def get_intraday_log(
                     return {
                         "id": row["id"],
                         "symbol": row["symbol"],
-                        "analysis_time": _fmt_dt(row["analysis_time"], "%Y-%m-%d %H:%M:%S")
+                        "analysis_time": _fmt_dt(
+                            row["analysis_time"], "%Y-%m-%d %H:%M:%S"
+                        )
                         if row.get("analysis_time")
                         else "",
                         "price": float(row["price"]) if row["price"] else 0,
@@ -1220,21 +1253,59 @@ def get_intraday_log(
 
 def get_all_strategies() -> List[Dict[str, Any]]:
     """Get all strategies"""
+    db_strategies = []
     try:
         conn = get_connection()
         try:
             with conn.cursor() as cursor:
                 cursor.execute("SELECT * FROM strategies ORDER BY category, id")
-                return cursor.fetchall()
+                db_strategies = cursor.fetchall()
         finally:
             conn.close()
     except Exception as e:
         print(f"❌ Error getting all strategies: {e}")
-        return []
+
+    yaml_agents = _load_agents_from_yaml()
+    yaml_slugs = set(yaml_agents.keys())
+
+    final_strategies = []
+    for s in db_strategies:
+        if s["slug"] not in yaml_slugs:
+            final_strategies.append(s)
+
+    for slug, data in yaml_agents.items():
+        s = {
+            "id": data.get("id", 0),
+            "slug": slug,
+            "name": data.get("name", ""),
+            "description": data.get("description", ""),
+            "category": data.get("category", "general"),
+            "template_content": data.get("template_content", ""),
+        }
+        final_strategies.append(s)
+
+    final_strategies.sort(key=lambda x: (x.get("category", ""), x.get("id", 0)))
+    return final_strategies
 
 
 def get_strategy_by_slug(slug: str) -> Optional[Dict[str, Any]]:
-    """Get full strategy details including params by slug"""
+    """Get full strategy details including params by slug (YAML prioritized)"""
+    yaml_agents = _load_agents_from_yaml()
+    if slug in yaml_agents:
+        data = yaml_agents[slug]
+        return {
+            "id": data.get("id", 0),
+            "slug": slug,
+            "name": data.get("name", ""),
+            "description": data.get("description", ""),
+            "category": data.get("category", "general"),
+            "template_content": data.get("template_content", ""),
+            "params": {
+                "role": data.get("role", ""),
+                "system_prompt": data.get("system_prompt", ""),
+            },
+        }
+
     try:
         conn = get_connection()
         try:

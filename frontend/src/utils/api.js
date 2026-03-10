@@ -65,8 +65,11 @@ export const apiMethods = {
     return api.get(`/analyze/${symbol}/metrics${params}`)
   },
 
-  analyzeStockStream: async (symbol, mode = 'multi_agent', onProgress, onComplete, onError) => {
-    const response = await fetch(`/api/analyze/${symbol}/report/stream?mode=${mode}`)
+  getAgents: () => api.get('/agents'),
+
+  analyzeStockStream: async (symbol, mode = 'multi_agent', agents = [], onProgress, onComplete, onError) => {
+    const agentsParam = agents.length > 0 ? `&agents=${agents.join(',')}` : ''
+    const response = await fetch(`/api/analyze/${symbol}/report/stream?mode=${mode}${agentsParam}`)
     const reader = response.body.getReader()
     const decoder = new TextDecoder()
 

@@ -932,12 +932,16 @@ async def get_strategy_context_schema():
 
 
 @app.get("/api/analyze/{symbol}/report/stream")
-async def analyze_stock_report_stream(symbol: str, mode: str = "multi_agent"):
+async def analyze_stock_report_stream(
+    symbol: str, mode: str = "multi_agent", agents: str = None
+):
     """
     流式传输 AI 分析报告 (SSE)。
     模式：
     - multi_agent：全面辩论（技术派 vs 风险派 vs 基本面派 -> CIO）
     - single_prompt：使用单一稳健提示进行快速分析（旧版/快速）
+    说明：
+    - agents 参数可以按逗号分隔传递自定义参与辩论的专家slugs（如 ?agents=agent_trend_follower,agent_washout_hunter）。
     """
 
     async def _stream_generator():
@@ -985,7 +989,8 @@ async def analyze_stock_report_stream(symbol: str, mode: str = "multi_agent"):
 
                 yield f"data: {json.dumps({'type': 'progress', 'value': 30, 'message': '🧠 正在组建专家辩论团队...'})}\n\n"
 
-                system = MultiAgentSystem(api_config)
+                agents_list = [a.strip() for a in agents.split(",")] if agents else None
+                system = MultiAgentSystem(api_config, agents_slugs=agents_list)
 
                 accumulated_html = ""
                 # 传递 context_payload 包含所有变量，实现单一数据源贯穿
@@ -2096,6 +2101,20 @@ async def get_candidate_analysis_status(symbol: str):
 async def list_strategies():
     """列出所有策略"""
     return database.get_all_strategies()
+
+
+@app.get("/api/agents")
+async def list_agents():
+    """列出所有可用的多专家 Agent 选项"""
+    strategies = database.get_all_strategies()
+    # 过滤出适合作为专家 Agent 的策略
+    agents = [
+        s
+        for s in strategies
+        if s.get("category") in ("general", "multi_agent_expert")
+        and not s.get("slug", "").startswith("agent_cio")
+    ]
+    return {"status": "success", "agents": agents}
 
 
 @app.get("/api/strategies/{slug}")

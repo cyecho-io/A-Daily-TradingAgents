@@ -411,6 +411,17 @@
           <div class="flex-1 overflow-y-auto min-h-0 bg-bg/30 p-4">
              <div class="prose-container h-full mt-0 flex flex-col w-full">
                  
+                 <!-- Agent Selection (Only for multi_agent) -->
+                 <div v-if="activeAnalyzerTab === 'multi_agent'" class="mb-4">
+                     <div class="text-xs font-semibold text-text-tertiary mb-2">配置参与辩论的专家团队：</div>
+                     <div class="flex flex-wrap gap-2">
+                         <label v-for="agent in availableAgents" :key="agent.slug" class="cursor-pointer flex items-center gap-1.5 px-2 py-1 bg-bg-elevated rounded border border-border-subtle hover:border-primary/50 transition-colors">
+                             <input type="checkbox" :value="agent.slug" v-model="selectedAgents" class="w-3.5 h-3.5 text-primary bg-bg border-border-subtle rounded accent-primary">
+                             <span class="text-xs text-text-secondary select-none">{{ agent.name }}</span>
+                         </label>
+                     </div>
+                 </div>
+
                  <!-- Action Button Area inside the Tab Content -->
                  <div class="flex-shrink-0 mb-4 flex justify-between items-center border-b border-border-subtle pb-3">
                     <h3 class="text-sm font-bold text-text-primary m-0 flex items-center gap-2">
@@ -511,6 +522,8 @@ const activeAnalyzerTab = ref('single_expert') // 'multi_agent' or 'single_exper
 const availableAnalysisDates = ref([])
 const selectedAnalysisDate = ref(null)
 const starringSymbol = ref(null) // 正在切换收藏状态的股票代码
+const availableAgents = ref([])
+const selectedAgents = ref([])
 
 // Computed
 const selectedStock = computed(() => {
@@ -832,6 +845,7 @@ const runAIAnalysis = async () => {
         await apiMethods.analyzeStockStream(
           selectedStockSymbol.value,
           activeAnalyzerTab.value,
+          activeAnalyzerTab.value === 'multi_agent' ? selectedAgents.value : [],
           onProgress,
           onComplete,
           onError
@@ -856,11 +870,21 @@ const handleHoldingUpdated = async () => {
 }
 
 // Lifecycle
-onMounted(() => {
-  marketStore.fetchStatus()
-  // Force refresh to ensure latest data on load even if monitoring is off
-  marketStore.refreshRealtime()
-
+onMounted(async () => {
+  marketStore.startPolling()
+  window.addEventListener('resize', handleResize)
+  
+  // Load available agents
+  try {
+     const res = await apiMethods.getAgents()
+     if (res.status === 'success') {
+         availableAgents.value = res.agents
+         // Note: we can map only the slugs for default selection
+         selectedAgents.value = res.agents.map(a => a.slug)
+     }
+  } catch (e) {
+     console.error('Failed to load agents', e)
+  }
   // Removed auto-selection to support full list view by default
   // setTimeout(() => {
   //    if (marketStore.marketState.stocks.length > 0 && !selectedStockSymbol.value) {

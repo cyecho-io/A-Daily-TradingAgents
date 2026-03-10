@@ -21,6 +21,7 @@ import AppSidebar from '@/components/AppSidebar.vue'
 const marketStore = useMarketStore()
 
 onMounted(() => {
-  marketStore.fetchStatus()
+  // 单次页面刷新时，强制获取一次完整实时数据
+  marketStore.refreshRealtime()
 })
 </script>
